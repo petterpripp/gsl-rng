@@ -20,7 +20,7 @@
 
     (define rng_name (cast (gsl_rng_name r) _char-pointer _string ))
 
-    (gsl_rng_free r)
+    ;(gsl_rng_free r)
     
     (when (not (= k result))        
       (with-check-info (['rng (string-info rng_name)]
@@ -156,5 +156,7 @@
    (rng_test gsl_rng_ranf 2 10000 339327233)))
 
 (run-tests rng-tests)
+
+;(for-each (lambda (i) (run-tests rng-tests)) (range 5))
 
 

@@ -1,8 +1,8 @@
 #lang racket
 
 (require ffi/unsafe 
-         ffi/unsafe/define)
-
+         ffi/unsafe/define
+         ffi/unsafe/alloc)
 
 (define-ffi-definer gslcblas (ffi-lib "libgslcblas" #:global? #t))
 (define-ffi-definer gsl (ffi-lib "libgsl"  #:global? #t))
@@ -86,9 +86,12 @@
     (gsl f body)
     (provide f)))
 
-(def-gsl gsl_rng_alloc (_fun _gsl_rng_type-pointer -> _gsl_rng-pointer))
+
+(gsl gsl_rng_free (_fun _gsl_rng-pointer -> _void)  #:wrap (deallocator))
+(gsl gsl_rng_alloc (_fun _gsl_rng_type-pointer -> _gsl_rng-pointer) #:wrap (allocator gsl_rng_free))
+(provide gsl_rng_alloc)
+
 (def-gsl gsl_rng_set (_fun _gsl_rng-pointer _ulong -> _void))
-(def-gsl gsl_rng_free (_fun _gsl_rng-pointer -> _void))
 (def-gsl gsl_rng_get (_fun _gsl_rng-pointer -> _ulong))
 ;(def-gsl gsl_rng_uniform (_fun _gsl_rng-pointer -> _double))
 ;(def-gsl gsl_rng_uniform_pos (_fun _gsl_rng-pointer -> _double))
@@ -97,8 +100,8 @@
 ;(def-gsl gsl_rng_max (_fun _gsl_rng-pointer -> _ulong))
 ;(def-gsl gsl_rng_min (_fun _gsl_rng-pointer -> _ulong))
 ;(def-gsl gsl_rng_size (_fun _gsl_rng-pointer -> _size))
-;(def-gsl gsl_rng_env_setup (_fun -> _gsl_rng_type-pointer))
 
+;(def-gsl gsl_rng_env_setup (_fun -> _gsl_rng_type-pointer))
 ;(def-gsl gsl_rng_default_seed _ulong)
 ;(provide gsl_rng_default_seed)
 
