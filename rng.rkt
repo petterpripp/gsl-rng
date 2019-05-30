@@ -1,6 +1,6 @@
 #lang racket
-
-(require ffi/unsafe 
+ 
+(require (rename-in ffi/unsafe (-> ~>))
          ffi/unsafe/define
          ffi/unsafe/alloc)
 
@@ -9,6 +9,7 @@
 
 (begin-for-syntax
   (require racket/syntax syntax/parse))
+
 
 (define-syntax (make-pointer stx)
   (syntax-parse stx 
@@ -26,60 +27,10 @@
 ; Turns off default gsl error handler, preventing unwanted abort of program and freeze of DrRacket.
 (define _gsl_error_handler_t-pointer (_cpointer/null 'gsl_error_handler_t))
 ;(c2gsl "gsl_error_handler_t * gsl_set_error_handler_off();")
-(gsl gsl_set_error_handler_off (_fun -> _gsl_error_handler_t-pointer))
+(gsl gsl_set_error_handler_off (_fun ~> _gsl_error_handler_t-pointer))
 (define previous_handler (gsl_set_error_handler_off))
 
 
-(define gsl_errno
-  '((GSL_SUCCESS  0  "SUCCESS")
-    (GSL_FAILURE  -1 "FAILURE")
-    (GSL_CONTINUE -2  "iteration has not converged")
-    (GSL_EDOM     1   "input domain error, e.g sqrt(-1)")
-    (GSL_ERANGE   2   "output range error, e.g. exp(1e100)")
-    (GSL_EFAULT   3   "invalid pointer")
-    (GSL_EINVAL   4   "invalid argument supplied by user")
-    (GSL_EFAILED  5   "generic failure")
-    (GSL_EFACTOR  6   "factorization failed")
-    (GSL_ESANITY  7   "sanity check failed - shouldn't happen")
-    (GSL_ENOMEM   8   "malloc failed")
-    (GSL_EBADFUNC 9   "problem with user-supplied function")
-    (GSL_ERUNAWAY 10  "iterative process is out of control")
-    (GSL_EMAXITER 11  "exceeded max number of iterations")
-    (GSL_EZERODIV 12  "tried to divide by zero")
-    (GSL_EBADTOL  13  "user specified an invalid tolerance")
-    (GSL_ETOL     14  "failed to reach the specified tolerance")
-    (GSL_EUNDRFLW 15  "underflow")
-    (GSL_EOVRFLW  16  "overflow")
-    (GSL_ELOSS    17  "loss of accuracy")
-    (GSL_EROUND   18  "failed because of roundoff error")
-    (GSL_EBADLEN  19  "matrix, vector lengths are not conformant")
-    (GSL_ENOTSQR  20  "matrix not square")
-    (GSL_ESING    21  "apparent singularity detected")
-    (GSL_EDIVERGE 22  "integral or series is divergent")
-    (GSL_EUNSUP   23  "requested feature is not supported by the hardware")
-    (GSL_EUNIMPL  24  "requested feature not (yet) implemented")
-    (GSL_ECACHE   25  "cache limit exceeded")
-    (GSL_ETABLE   26  "table limit exceeded")
-    (GSL_ENOPROG  27  "iteration is not making progress towards solution")
-    (GSL_ENOPROGJ 28  "jacobian evaluations are not improving the solution")
-    (GSL_ETOLF    29  "cannot reach the specified tolerance in F")
-    (GSL_ETOLX    30  "cannot reach the specified tolerance in X")
-    (GSL_ETOLG    31  "cannot reach the specified tolerance in gradient")
-    (GSL_EOF      32  "end of file")))
-
-
-(define (gsl_errno_element nr)
-  (let ([res (filter (lambda (x) (= (second x) nr)) gsl_errno)])
-    (if ( = (length res) 1)
-        (first res)
-        (error (string-append "Did not find correct gsl_errno_element. nr = " (~a nr) " res = " (~a res))))))
-
-
-(define (gsl_errno_symbol nr)
-  (first (gsl_errno_element nr)))
-
-(define (gsl_errno_msg nr)
-  (third (gsl_errno_element nr)))
 
 (define-syntax-rule (def-gsl f body)
   (begin
@@ -87,28 +38,36 @@
     (provide f)))
 
 
-(gsl gsl_rng_free (_fun _gsl_rng-pointer -> _void)  #:wrap (deallocator))
-(gsl gsl_rng_alloc (_fun _gsl_rng_type-pointer -> _gsl_rng-pointer) #:wrap (allocator gsl_rng_free))
-(provide gsl_rng_alloc)
+(gsl gsl_rng_free (_fun _gsl_rng-pointer ~> _void)  #:wrap (deallocator))
+(gsl gsl_rng_alloc (_fun _gsl_rng_type-pointer ~> _gsl_rng-pointer) #:wrap (allocator gsl_rng_free))
+(gsl gsl_rng_set (_fun _gsl_rng-pointer _ulong ~> _void))
 
-(def-gsl gsl_rng_set (_fun _gsl_rng-pointer _ulong -> _void))
-(def-gsl gsl_rng_get (_fun _gsl_rng-pointer -> _ulong))
-;(def-gsl gsl_rng_uniform (_fun _gsl_rng-pointer -> _double))
-;(def-gsl gsl_rng_uniform_pos (_fun _gsl_rng-pointer -> _double))
-;(def-gsl gsl_rng_uniform_int (_fun _gsl_rng-pointer _ulong -> _ulong))
-(def-gsl gsl_rng_name (_fun _gsl_rng-pointer -> _char-pointer))
-;(def-gsl gsl_rng_max (_fun _gsl_rng-pointer -> _ulong))
-;(def-gsl gsl_rng_min (_fun _gsl_rng-pointer -> _ulong))
-;(def-gsl gsl_rng_size (_fun _gsl_rng-pointer -> _size))
+(define/contract (rng-init T seed)
+  (-> gsl_rng_type-pointer? nonnegative-integer?  gsl_rng-pointer?)
+  (begin
+    (define r (gsl_rng_alloc T))
+    (gsl_rng_set r seed)
+    r))
+(provide rng-init)    
 
-;(def-gsl gsl_rng_env_setup (_fun -> _gsl_rng_type-pointer))
-;(def-gsl gsl_rng_default_seed _ulong)
-;(provide gsl_rng_default_seed)
+
+(def-gsl gsl_rng_get (_fun _gsl_rng-pointer ~> _ulong))
+(def-gsl gsl_rng_uniform (_fun _gsl_rng-pointer ~> _double))
+(def-gsl gsl_rng_uniform_pos (_fun _gsl_rng-pointer ~> _double))
+(def-gsl gsl_rng_uniform_int (_fun _gsl_rng-pointer _ulong ~> _ulong))
+(def-gsl gsl_rng_max (_fun _gsl_rng-pointer ~> _ulong))
+(def-gsl gsl_rng_min (_fun _gsl_rng-pointer ~> _ulong))
+
+(gsl gsl_rng_name (_fun _gsl_rng-pointer ~> _char-pointer))
+(define/contract (rng-name r)
+  (-> gsl_rng-pointer? string?)
+  (cast (gsl_rng_name r) _char-pointer _string ))
+(provide rng-name)
 
 (define-syntax-rule (get-rng-type id)
   (def-gsl id _gsl_rng_type-pointer)) 
 
-;(get-rng-type gsl_rng_default)
+
 (get-rng-type gsl_rng_borosh13)
 (get-rng-type gsl_rng_coveyou)
 (get-rng-type gsl_rng_cmrg)

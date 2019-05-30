@@ -1,38 +1,28 @@
 #lang racket
 
-(require ffi/unsafe
-         "rnd.rkt"
+(require "rng.rkt"
          rackunit
          rackunit/text-ui)
-;(require infix)
 
 
 (define-check (rng_test T seed n result)
   (begin
     
-    (define r (gsl_rng_alloc T))
-    
-    (when (not (= seed 0))
-      (gsl_rng_set r seed))
+    (define r (rng-init T seed))
 
     (define k    
       (foldl (lambda (i acc) (gsl_rng_get r)) 0 (range n)))
-
-    (define rng_name (cast (gsl_rng_name r) _char-pointer _string ))
-
-    ;(gsl_rng_free r)
     
     (when (not (= k result))        
-      (with-check-info (['rng (string-info rng_name)]
+      (with-check-info (['rng (string-info (rng-name r))]
                         ['actual k]
                         ['expected result])
         (fail-check)))))
     
 
-
 (define rng-tests
   (test-suite
-   "Tests for rng"
+   "gsl_rng_..."
   
    ;(gsl_rng_env_setup)
    
@@ -153,7 +143,13 @@
    (rng_test gsl_rng_random256_libc5 0 10000 116367984)
 
    (rng_test gsl_rng_ranf 0 10000 2152890433)
-   (rng_test gsl_rng_ranf 2 10000 339327233)))
+   (rng_test gsl_rng_ranf 2 10000 339327233)
+   
+   (check-equal? (gsl_rng_min (rng-init gsl_rng_mt19937 0)) 0 "min mt19937")
+   (check-equal? (gsl_rng_max (rng-init gsl_rng_mt19937 0)) (- (expt 2 32) 1) "max mt19937")
+   (check-true (flonum? (gsl_rng_uniform (rng-init gsl_rng_mt19937 0))) "uniform double")
+   (check-true (flonum? (gsl_rng_uniform_pos (rng-init gsl_rng_mt19937 0))) "uniform double pos")
+   (check-true (integer? (gsl_rng_uniform_int (rng-init gsl_rng_mt19937 0) 1000)) "uniform integer")))
 
 (run-tests rng-tests)
 

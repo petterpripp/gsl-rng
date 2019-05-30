@@ -1,5 +1,5 @@
 # gsl-rng
-Racket library on top of [GNU GSL Random Number Generation](https://www.gnu.org/software/gsl/doc/html/rng.html)
+Interface to [GNU GSL Random Number Generation](https://www.gnu.org/software/gsl/doc/html/rng.html)
 
 Library hides memory allocation and other low level C stuff.
 
