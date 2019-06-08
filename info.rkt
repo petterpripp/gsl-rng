@@ -8,4 +8,4 @@
 (define scribblings '(("scribblings/gsl-rng.scrbl" ())))
 (define pkg-desc "Binding to gnu gsl random number generation")
 (define pkg-authors '(Petter Pripp))
-(define test-omit-paths (if (getenv "PLT_PKG_BUILD_SERVICE") 'all '()))
+(define test-omit-paths (if (getenv "PLT_PKG_BUILD_SERVICE") 'all '("private/" "scribblings/")))

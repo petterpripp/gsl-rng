@@ -1,5 +1,7 @@
 #lang racket
- 
+
+;(inv-cdf (normal-dist 0 1) 0.1)
+
 (require (rename-in ffi/unsafe (-> ~>))
          ffi/unsafe/define
          ffi/unsafe/alloc)
@@ -15,14 +17,15 @@
   (syntax-parse stx 
     [(_ ctype)
      (with-syntax ([pointer (format-id #'ctype "_~a-pointer" (syntax->datum #'ctype))]
-                   [pointer? (format-id #'ctype "~a-pointer?" (syntax->datum #'ctype))])       
-       #'(begin (define-cpointer-type pointer) (provide pointer pointer?)))]))
+                   [pointer? (format-id #'ctype "~a-pointer?" (syntax->datum #'ctype))])
+       #'(begin (define-cpointer-type pointer) ))]))
+       ;#'(begin (define-cpointer-type pointer) (provide pointer pointer?)))]))
 
 
 (make-pointer char)
 (make-pointer gsl_rng_type)
 (make-pointer gsl_rng)
-
+(provide gsl_rng-pointer?)
 
 ; Turns off default gsl error handler, preventing unwanted abort of program and freeze of DrRacket.
 (define _gsl_error_handler_t-pointer (_cpointer/null 'gsl_error_handler_t))
@@ -46,7 +49,7 @@
     (define r (gsl_rng_alloc (symbol->rng-type T)))
     (gsl_rng_set r (if seed
                        seed
-                       (inexact->exact (round (* (expt 2 32) (random))))))
+                       (inexact->exact (round (* (expt 2 64) (random))))))
     r))
 (provide gsl_rng_init)    
 
@@ -198,5 +201,3 @@
     [_ (list #f t)]))
     
 
-; don't run this file for testing:
-(module test racket/base)

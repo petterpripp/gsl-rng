@@ -1,9 +1,12 @@
 #lang racket
 
-(require "rng.rkt")
-(provide (all-from-out "rng.rkt"))
+(require "private/rng.rkt")
+(provide (all-from-out "private/rng.rkt"))
 
-; don't run this file for testing:
-(module test racket/base)
+
+(module test racket/base
+  (require "private/test.rkt"))
+
+
 
 

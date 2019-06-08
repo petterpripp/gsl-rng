@@ -15,5 +15,3 @@
 ; generator type: taus
 ; first value = 2720986350
 
-; don't run this file for testing:
-(module test racket/base)

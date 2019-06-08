@@ -150,7 +150,7 @@
    (check-true (flonum? (gsl_rng_uniform_pos (gsl_rng_init 'mt19937 0))) "uniform double pos")
    (check-true (integer? (gsl_rng_uniform_int (gsl_rng_init 'mt19937 ) 1000)) "uniform integer")
    
-   ; This test could fail with propability = 1/2^32 
+   ; This test could fail with propability = 1/2^64 
    (check-not-equal? (gsl_rng_get (gsl_rng_init 'mt19937 )) (gsl_rng_get (gsl_rng_init 'mt19937 )) "different seed")))
 
 
