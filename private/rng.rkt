@@ -44,7 +44,7 @@
 (gsl gsl_rng_set (_fun _gsl_rng-pointer _ulong ~> _void))
 
 (define/contract (gsl_rng_init T [seed #f])
-  (->* (symbol?) (nonnegative-integer?)  gsl_rng-pointer?)
+  (->* (symbol?) ((or/c #f nonnegative-integer?))  gsl_rng-pointer?)
   (begin
     (define r (gsl_rng_alloc (symbol->rng-type T)))
     (gsl_rng_set r (if seed
