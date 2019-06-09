@@ -1,4 +1,4 @@
-#gsl-integration 
+#gsl-rng
 
 Copyright (C) 2019 Petter Pripp
 
