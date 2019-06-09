@@ -5,7 +5,7 @@ Library hides memory allocation and other low level C stuff.
 
 GNU GSL has to be installed separately. Tested for GNU GSL 2.5
 
-Documentation: https://docs.racket-lang.org/gsl-rnd/index.html
+Documentation: https://docs.racket-lang.org/gsl-rng/index.html
 
 If you found this library to be useful, please donate.
 It will be highly appreciated.
