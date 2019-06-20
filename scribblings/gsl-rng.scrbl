@@ -223,3 +223,17 @@ Returns the largest value that @bold["gsl_rng_get"] can return.}
           (r gsl_rng-pointer?)                    
           ) nonnegative-integer?]{
 Returns the smallest value that @bold["gsl_rng_get"] can return.}
+
+
+@section{Troubleshooting}
+Some linux systems have precompiled package for GNU GSL library. Howeever this package can be of an older version. 
+It is recommended to compile and install GNU GSL library from source.
+Beware that installation directory from source can be different that from precompiled package.
+
+If you get error:  ffi-lib: couldn't open "libgslcblas.so" (libgslcblas.so: cannot open shared object file: No such file or directory)
+
+Solution: Edit ~/.bashrc
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
+export LD_LIBRARY_PATH
