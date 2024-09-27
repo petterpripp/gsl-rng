@@ -1,0 +1,7 @@
+.*
+!.gitignore
+*~
+compiled/*
+private/compiled/*
+scribblings/*
+!scribblings/gsl-rng.scrbl
